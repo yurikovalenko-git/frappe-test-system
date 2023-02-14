@@ -175,6 +175,14 @@ def get_doc_permissions(doc, user=None, ptype=None):
 
 	permissions = copy.deepcopy(get_role_permissions(meta, user=user, is_owner=is_user_owner()))
 
+	user_doc = frappe.get_doc('User',  user)
+	user_roles = [role.role for role in user_doc.roles]
+
+	if not doc.get("owner") == user_doc.email and "Z_Dinord_Assigned_Task_Only" in user_roles:
+		if user not in doc.get_assigned_users():
+			for k in permissions.keys():
+				permissions[k] = 0
+
 	if not cint(meta.is_submittable):
 		permissions["submit"] = 0
 
