@@ -24,4 +24,20 @@
 			pointer-events: none;
 		}
 	}
+
+	li.hist-obj {
+		a {
+			&:before {
+				content: None;
+			}
+		}
+	}
+
+	& > .hist-obj ~ .hist-obj {
+		margin-left: 10px;
+	}
+
+	& > .hist-obj {
+		margin-left: 40px;
+	}
 }

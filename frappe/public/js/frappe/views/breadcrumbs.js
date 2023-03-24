@@ -74,8 +74,62 @@ frappe.breadcrumbs = {
 				this.set_dashboard_breadcrumb(breadcrumbs);
 			}
 		}
-
+		this.set_current_doc_name();
+		this.set_history_objects();
 		this.toggle(true);
+	},
+
+	set_current_doc_name() {
+		let last_obj_index = frappe.route_history.length - 1;
+		if (
+			frappe.route_history[last_obj_index][2] != "List" &&
+			typeof frappe.route_history[last_obj_index][2] !== "undefined"
+		) {
+			frappe.doc_name = frappe.route_history[frappe.route_history.length - 1][2];
+		}
+	},
+
+	set_history_objects() {
+		const doctype_title_fields = {
+			Issue: "subject",
+			Task: "subject",
+			Project: "project_name",
+		};
+		let hist_objects = [];
+		let doc_title, doctype, doc_name, doc, title_field;
+		for (let i = frappe.route_history.length - 1; i >= 0; i--) {
+			doctype = frappe.route_history[i][1];
+			doc_name = frappe.route_history[i][2];
+			if (
+				doc_name != "List" &&
+				typeof doc_name !== "undefined" &&
+				doc_name != frappe.doc_name
+			) {
+				let existingHistObjects = [];
+				for (let v in hist_objects) {
+					existingHistObjects.push(hist_objects[v]["doc_name"]);
+				}
+				if (!existingHistObjects.includes(doc_name)) {
+					hist_objects.push({ doctype: doctype, doc_name: doc_name });
+				}
+			}
+			if (hist_objects.length >= 3) {
+				break;
+			}
+		}
+		for (let i in hist_objects.reverse()) {
+			doc = frappe.get_doc(hist_objects[i]["doctype"], hist_objects[i]["doc_name"]);
+			title_field = doctype_title_fields[hist_objects[i]["doctype"]];
+			doc_title = doc[title_field];
+
+			$(
+				`<li class="hist-obj" title="${doc_title}"><a href="/app/${hist_objects[i][
+					"doctype"
+				].toLowerCase()}/${hist_objects[i]["doc_name"]}">${__(
+					hist_objects[i]["doc_name"]
+				)}</a></li>`
+			).appendTo(this.$breadcrumbs);
+		}
 	},
 
 	set_custom_breadcrumbs(breadcrumbs) {
