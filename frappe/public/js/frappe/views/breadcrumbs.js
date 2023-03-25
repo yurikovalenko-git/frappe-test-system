@@ -120,7 +120,7 @@ frappe.breadcrumbs = {
 		for (let i in hist_objects.reverse()) {
 			doc = frappe.get_doc(hist_objects[i]["doctype"], hist_objects[i]["doc_name"]);
 			title_field = doctype_title_fields[hist_objects[i]["doctype"]];
-			doc_title = doc[title_field];
+			doc_title = typeof doc[title_field] !== "undefined" ? doc[title_field] : "";
 
 			$(
 				`<li class="hist-obj" title="${doc_title}"><a href="/app/${hist_objects[i][
