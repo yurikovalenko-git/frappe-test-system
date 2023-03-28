@@ -8,7 +8,7 @@ frappe.breadcrumbs = {
 		File: "",
 		Dashboard: "Customization",
 		"Dashboard Chart": "Customization",
-		"Dashboard Chart Source": "Customization",
+		"Dashboard Chart Source": "Customization"
 	},
 
 	module_map: {
@@ -19,7 +19,7 @@ frappe.breadcrumbs = {
 		Printing: "Settings",
 		Setup: "Settings",
 		"Event Streaming": "Tools",
-		Automation: "Tools",
+		Automation: "Tools"
 	},
 
 	set_doctype_module(doctype, module) {
@@ -38,7 +38,7 @@ frappe.breadcrumbs = {
 			obj = {
 				module: module,
 				doctype: doctype,
-				type: type,
+				type: type
 			};
 		}
 		this.all[frappe.breadcrumbs.current_page()] = obj;
@@ -93,15 +93,16 @@ frappe.breadcrumbs = {
 		const doctype_title_fields = {
 			Issue: "subject",
 			Task: "subject",
-			Project: "project_name",
+			Project: "project_name"
 		};
+		const view_names = ["List", "Report", "Dashboard", "Gantt", "Calendar", "Kanban"];
 		let hist_objects = [];
 		let doc_title, doctype, doc_name, doc, title_field;
 		for (let i = frappe.route_history.length - 1; i >= 0; i--) {
 			doctype = frappe.route_history[i][1];
 			doc_name = frappe.route_history[i][2];
 			if (
-				doc_name != "List" &&
+				!view_names.includes(doc_name) &&
 				typeof doc_name !== "undefined" &&
 				doc_name != frappe.doc_name
 			) {
@@ -209,7 +210,10 @@ frappe.breadcrumbs = {
 
 	set_form_breadcrumb(breadcrumbs, view) {
 		const doctype = breadcrumbs.doctype;
-		const docname = frappe.get_route().slice(2).join("/");
+		const docname = frappe
+			.get_route()
+			.slice(2)
+			.join("/");
 		let form_route = `/app/${frappe.router.slug(doctype)}/${docname}`;
 		$(`<li><a href="${form_route}">${__(docname)}</a></li>`).appendTo(this.$breadcrumbs);
 
@@ -217,7 +221,7 @@ frappe.breadcrumbs = {
 			let last_crumb = this.$breadcrumbs.find("li").last();
 			last_crumb.addClass("disabled");
 			last_crumb.css("cursor", "copy");
-			last_crumb.click((event) => {
+			last_crumb.click(event => {
 				event.stopImmediatePropagation();
 				frappe.utils.copy_to_clipboard(last_crumb.text());
 			});
@@ -233,7 +237,7 @@ frappe.breadcrumbs = {
 
 	setup_modules() {
 		if (!frappe.visible_modules) {
-			frappe.visible_modules = $.map(frappe.boot.allowed_workspaces, (m) => {
+			frappe.visible_modules = $.map(frappe.boot.allowed_workspaces, m => {
 				return m.module;
 			});
 		}
@@ -257,5 +261,5 @@ frappe.breadcrumbs = {
 		} else {
 			$("body").removeClass("no-breadcrumbs");
 		}
-	},
+	}
 };
