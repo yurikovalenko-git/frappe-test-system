@@ -26,18 +26,17 @@
 	}
 
 	li.hist-obj {
-		a {
-			&:before {
-				content: None;
-			}
+		a:before {
+			content: none;
 		}
 	}
-
 	& > .hist-obj ~ .hist-obj {
-		margin-left: 10px;
+		margin-left: 2px;
+		a:before {
+			content: #{"/*!rtl:var(--left-arrow-svg);*/"}var(--right-arrow-svg);
+		}
 	}
-
 	& > .hist-obj {
-		margin-left: 40px;
+		margin-left: 20px;
 	}
 }

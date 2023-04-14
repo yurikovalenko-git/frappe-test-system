@@ -4,6 +4,8 @@
 frappe.breadcrumbs = {
 	all: {},
 
+	view_names: ["List", "Report", "Dashboard", "Gantt", "Calendar", "Kanban"],
+
 	preferred: {
 		File: "",
 		Dashboard: "Customization",
@@ -53,7 +55,11 @@ frappe.breadcrumbs = {
 		var breadcrumbs = this.all[frappe.breadcrumbs.current_page()];
 
 		this.clear();
-		if (!breadcrumbs) return this.toggle(false);
+		if (!breadcrumbs) {
+			this.set_current_doc_name();
+			this.set_history_objects();
+			return this.toggle(true);
+		}
 
 		if (breadcrumbs.type === "Custom") {
 			this.set_custom_breadcrumbs(breadcrumbs);
@@ -74,6 +80,14 @@ frappe.breadcrumbs = {
 				this.set_dashboard_breadcrumb(breadcrumbs);
 			}
 		}
+		// TODO: There should be other an optimized solution without query every time
+		// frappe.db
+		// 	.get_value("User", frappe.session.user, "enable_history_breadcrumbers")
+		// 	.then(resp => {
+		// 		const { enable_history_breadcrumbers } = resp["message"];
+		// 		if (enable_history_breadcrumbers) {
+		// 	}
+		// });
 		this.set_current_doc_name();
 		this.set_history_objects();
 		this.toggle(true);
@@ -81,28 +95,23 @@ frappe.breadcrumbs = {
 
 	set_current_doc_name() {
 		let last_obj_index = frappe.route_history.length - 1;
+		frappe.doc_name = undefined;
 		if (
 			frappe.route_history[last_obj_index][2] != "List" &&
 			typeof frappe.route_history[last_obj_index][2] !== "undefined"
 		) {
-			frappe.doc_name = frappe.route_history[frappe.route_history.length - 1][2];
+			frappe.doc_name = frappe.route_history[last_obj_index][2];
 		}
 	},
 
 	set_history_objects() {
-		const doctype_title_fields = {
-			Issue: "subject",
-			Task: "subject",
-			Project: "project_name"
-		};
-		const view_names = ["List", "Report", "Dashboard", "Gantt", "Calendar", "Kanban"];
 		let hist_objects = [];
 		let doc_title, doctype, doc_name, doc, title_field;
 		for (let i = frappe.route_history.length - 1; i >= 0; i--) {
 			doctype = frappe.route_history[i][1];
 			doc_name = frappe.route_history[i][2];
 			if (
-				!view_names.includes(doc_name) &&
+				!this.view_names.includes(doc_name) &&
 				typeof doc_name !== "undefined" &&
 				doc_name != frappe.doc_name
 			) {
@@ -118,15 +127,18 @@ frappe.breadcrumbs = {
 				break;
 			}
 		}
+		if (hist_objects.length > 0) {
+			$(`<li class="vertical-bar d-none d-sm-block"></li>`).appendTo(this.$breadcrumbs);
+		}
 		for (let i in hist_objects.reverse()) {
 			doc = frappe.get_doc(hist_objects[i]["doctype"], hist_objects[i]["doc_name"]);
-			title_field = doctype_title_fields[hist_objects[i]["doctype"]];
+			title_field = frappe.get_meta(hist_objects[i]["doctype"]).title_field;
 			doc_title = typeof doc[title_field] !== "undefined" ? doc[title_field] : "";
-
+			let form_route = `/app/${frappe.router.slug(hist_objects[i]["doctype"])}/${
+				hist_objects[i]["doc_name"]
+			}`;
 			$(
-				`<li class="hist-obj" title="${doc_title}"><a href="/app/${hist_objects[i][
-					"doctype"
-				].toLowerCase()}/${hist_objects[i]["doc_name"]}">${__(
+				`<li class="hist-obj" title="${doc_title}"><a href="${form_route}">${__(
 					hist_objects[i]["doc_name"]
 				)}</a></li>`
 			).appendTo(this.$breadcrumbs);
