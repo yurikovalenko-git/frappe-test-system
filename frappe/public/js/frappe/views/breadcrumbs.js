@@ -4,11 +4,13 @@
 frappe.breadcrumbs = {
 	all: {},
 
+	view_names: ["List", "Report", "Dashboard", "Gantt", "Calendar", "Kanban"],
+
 	preferred: {
 		File: "",
 		Dashboard: "Customization",
 		"Dashboard Chart": "Customization",
-		"Dashboard Chart Source": "Customization",
+		"Dashboard Chart Source": "Customization"
 	},
 
 	module_map: {
@@ -19,7 +21,7 @@ frappe.breadcrumbs = {
 		Printing: "Settings",
 		Setup: "Settings",
 		"Event Streaming": "Tools",
-		Automation: "Tools",
+		Automation: "Tools"
 	},
 
 	set_doctype_module(doctype, module) {
@@ -38,7 +40,7 @@ frappe.breadcrumbs = {
 			obj = {
 				module: module,
 				doctype: doctype,
-				type: type,
+				type: type
 			};
 		}
 		this.all[frappe.breadcrumbs.current_page()] = obj;
@@ -53,7 +55,11 @@ frappe.breadcrumbs = {
 		var breadcrumbs = this.all[frappe.breadcrumbs.current_page()];
 
 		this.clear();
-		if (!breadcrumbs) return this.toggle(false);
+		if (!breadcrumbs) {
+			this.set_current_doc_name();
+			this.set_history_objects();
+			return this.toggle(true);
+		}
 
 		if (breadcrumbs.type === "Custom") {
 			this.set_custom_breadcrumbs(breadcrumbs);
@@ -74,8 +80,69 @@ frappe.breadcrumbs = {
 				this.set_dashboard_breadcrumb(breadcrumbs);
 			}
 		}
-
+		// TODO: There should be other an optimized solution without query every time
+		// frappe.db
+		// 	.get_value("User", frappe.session.user, "enable_history_breadcrumbers")
+		// 	.then(resp => {
+		// 		const { enable_history_breadcrumbers } = resp["message"];
+		// 		if (enable_history_breadcrumbers) {
+		// 	}
+		// });
+		this.set_current_doc_name();
+		this.set_history_objects();
 		this.toggle(true);
+	},
+
+	set_current_doc_name() {
+		let last_obj_index = frappe.route_history.length - 1;
+		frappe.doc_name = undefined;
+		if (
+			frappe.route_history[last_obj_index][2] != "List" &&
+			typeof frappe.route_history[last_obj_index][2] !== "undefined"
+		) {
+			frappe.doc_name = frappe.route_history[last_obj_index][2];
+		}
+	},
+
+	set_history_objects() {
+		let hist_objects = [];
+		let doc_title, doctype, doc_name, doc, title_field;
+		for (let i = frappe.route_history.length - 1; i >= 0; i--) {
+			doctype = frappe.route_history[i][1];
+			doc_name = frappe.route_history[i][2];
+			if (
+				!this.view_names.includes(doc_name) &&
+				typeof doc_name !== "undefined" &&
+				doc_name != frappe.doc_name
+			) {
+				let existingHistObjects = [];
+				for (let v in hist_objects) {
+					existingHistObjects.push(hist_objects[v]["doc_name"]);
+				}
+				if (!existingHistObjects.includes(doc_name)) {
+					hist_objects.push({ doctype: doctype, doc_name: doc_name });
+				}
+			}
+			if (hist_objects.length >= 3) {
+				break;
+			}
+		}
+		if (hist_objects.length > 0) {
+			$(`<li class="vertical-bar d-none d-sm-block"></li>`).appendTo(this.$breadcrumbs);
+		}
+		for (let i in hist_objects.reverse()) {
+			doc = frappe.get_doc(hist_objects[i]["doctype"], hist_objects[i]["doc_name"]);
+			title_field = frappe.get_meta(hist_objects[i]["doctype"]).title_field;
+			doc_title = typeof doc[title_field] !== "undefined" ? doc[title_field] : "";
+			let form_route = `/app/${frappe.router.slug(hist_objects[i]["doctype"])}/${
+				hist_objects[i]["doc_name"]
+			}`;
+			$(
+				`<li class="hist-obj" title="${doc_title}"><a href="${form_route}">${__(
+					hist_objects[i]["doc_name"]
+				)}</a></li>`
+			).appendTo(this.$breadcrumbs);
+		}
 	},
 
 	set_custom_breadcrumbs(breadcrumbs) {
@@ -179,7 +246,10 @@ frappe.breadcrumbs = {
 
 	set_form_breadcrumb(breadcrumbs, view) {
 		const doctype = breadcrumbs.doctype;
-		const docname = frappe.get_route().slice(2).join("/");
+		const docname = frappe
+			.get_route()
+			.slice(2)
+			.join("/");
 		let form_route = `/app/${frappe.router.slug(doctype)}/${docname}`;
 		$(`<li><a href="${form_route}">${__(docname)}</a></li>`).appendTo(this.$breadcrumbs);
 
@@ -187,7 +257,7 @@ frappe.breadcrumbs = {
 			let last_crumb = this.$breadcrumbs.find("li").last();
 			last_crumb.addClass("disabled");
 			last_crumb.css("cursor", "copy");
-			last_crumb.click((event) => {
+			last_crumb.click(event => {
 				event.stopImmediatePropagation();
 				frappe.utils.copy_to_clipboard(last_crumb.text());
 			});
@@ -203,7 +273,7 @@ frappe.breadcrumbs = {
 
 	setup_modules() {
 		if (!frappe.visible_modules) {
-			frappe.visible_modules = $.map(frappe.boot.allowed_workspaces, (m) => {
+			frappe.visible_modules = $.map(frappe.boot.allowed_workspaces, m => {
 				return m.module;
 			});
 		}
@@ -227,5 +297,5 @@ frappe.breadcrumbs = {
 		} else {
 			$("body").removeClass("no-breadcrumbs");
 		}
-	},
+	}
 };
