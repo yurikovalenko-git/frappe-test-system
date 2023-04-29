@@ -42,7 +42,7 @@ from .utils.jinja import (
 )
 from .utils.lazy_loader import lazy_import
 
-__version__ = "14.25.1"
+__version__ = "14.34.0"
 __title__ = "Frappe Framework"
 
 controllers = {}
@@ -182,9 +182,9 @@ if TYPE_CHECKING:
 # end: static analysis hack
 
 
-def init(site: str, sites_path: str = ".", new_site: bool = False) -> None:
+def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) -> None:
 	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
-	if getattr(local, "initialised", None):
+	if getattr(local, "initialised", None) and not force:
 		return
 
 	local.error_log = []
@@ -572,7 +572,7 @@ def get_user():
 
 def get_roles(username=None) -> list[str]:
 	"""Returns roles of current user."""
-	if not local.session:
+	if not local.session or not local.session.user:
 		return ["Guest"]
 	import frappe.permissions
 
@@ -1290,7 +1290,7 @@ def reload_doc(
 	return frappe.modules.reload_doc(module, dt, dn, force=force, reset_permissions=reset_permissions)
 
 
-@whitelist()
+@whitelist(methods=["POST", "PUT"])
 def rename_doc(
 	doctype: str,
 	old: str,
