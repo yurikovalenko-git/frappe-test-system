@@ -76,6 +76,7 @@ frappe.breadcrumbs = {
 		}
 
 		this.toggle(true);
+		console.log('123123')
 	},
 
 	set_custom_breadcrumbs(breadcrumbs) {
