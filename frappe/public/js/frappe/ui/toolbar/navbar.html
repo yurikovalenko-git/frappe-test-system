@@ -3,6 +3,16 @@
 		<a class="navbar-brand navbar-home" href="/app">
 			<img class="app-logo" style="width: {{ navbar_settings.logo_width || 125 }}px; padding-bottom: 2px" src="{{ frappe.boot.app_logo_url }}">
 		</a>
+		<ul class="nav navbar-nav d-none d-sm-flex" id="navbar-route-history-menu">
+			<li class="nav-item dropdown dropdown-help dropdown-mobile d-none d-lg-block">
+				<a class="nav-link" data-toggle="dropdown" href="#" onclick="return false;">
+					<span class="icon-menu">
+						<svg class="icon icon-md"><use href="#icon-menu"></use></svg>
+					</span>
+				</a>
+				<div class="dropdown-menu dropdown-menu-left" id="navbar-route-history" role="menu"></div>
+			</li>
+		</ul>
 		<ul class="nav navbar-nav d-none d-sm-flex" id="navbar-breadcrumbs"></ul>
 		<div class="collapse navbar-collapse justify-content-end">
 			<form class="form-inline fill-width justify-content-end" role="search" onsubmit="return false;">

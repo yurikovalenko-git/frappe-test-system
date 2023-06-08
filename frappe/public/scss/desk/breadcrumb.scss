@@ -40,3 +40,8 @@
 		margin-left: 20px;
 	}
 }
+#navbar-route-history-menu {
+	&.hide {
+		visibility: hidden
+	}
+}
