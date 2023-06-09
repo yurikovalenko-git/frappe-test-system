@@ -183,6 +183,15 @@ def get_doc_permissions(doc, user=None, ptype=None):
 		return {ptype: 0}
 
 	permissions = copy.deepcopy(get_role_permissions(meta, user=user, is_owner=is_user_owner()))
+	user_doc = frappe.get_doc('User',  user)
+	user_roles = [role.role for role in user_doc.roles]
+
+	for limit_rule in limit_role_rules:
+		if doc.doctype == limit_rule['doctype']:
+			if not doc.get("owner") == user_doc.email and limit_rule["role"] in user_roles:
+				if user not in doc.get_assigned_users():
+					for k in permissions.keys():
+						permissions[k] = 0
 
 	user_doc = frappe.get_doc('User',  user)
 	user_roles = [role.role for role in user_doc.roles]
