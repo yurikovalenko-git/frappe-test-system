@@ -62,10 +62,10 @@ def route_history():
 	doctype_title_fields = {}
 	for route_doc in unique_routes:
 		path = route_doc.split('/')
-		doc_info = {
-			"view_name": path[0],
-			"doctype": path[1],
-			}
+		print(2222, path)
+		doc_info = {"view_name": path[0]}
+		if len(path) > 1:
+			doc_info["doctype"] = path[1]
 		if len(path) == 3 and path[0] == 'Form':
 			doc_info.update({
 				"doc_name": path[2],
@@ -81,7 +81,7 @@ def route_history():
 		doctype_meta = frappe.get_meta(doctype)
 		doctype_title_fields[doctype] = doctype_meta.title_field
 		from pprint import pprint
-		pprint(vars(frappe.get_meta(doctype)))
+		# pprint(vars(frappe.get_meta(doctype)))
 		if not doctype_meta.issingle:
 			for doc in frappe.get_list(
 				doctype,
