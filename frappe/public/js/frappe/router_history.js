@@ -15,18 +15,18 @@ const save_routes = frappe.utils.debounce(() => {
 		.catch(() => {
 			frappe.route_history_queue.concat(routes);
 		});
-}, 10000);
+}, 1);
 
 frappe.router.on("change", () => {
 	const route = frappe.get_route();
-	if (is_route_useful(route)) {
-		frappe.route_history_queue.push({
-			creation: frappe.datetime.now_datetime(),
-			route: frappe.get_route_str(),
-		});
+	// if (is_route_useful(route)) {
+	frappe.route_history_queue.push({
+		creation: frappe.datetime.now_datetime(),
+		route: frappe.get_route_str(),
+	});
 
-		save_routes();
-	}
+	save_routes();
+	// }
 });
 
 function is_route_useful(route) {
