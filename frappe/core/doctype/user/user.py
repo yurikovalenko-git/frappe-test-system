@@ -51,7 +51,7 @@ class User(Document):
 	def onload(self):
 		from frappe.config import get_modules_from_all_apps
 
-		self.set_onload("all_modules", [m.get("module_name") for m in get_modules_from_all_apps()])
+		self.set_onload("all_modules", sorted(m.get("module_name") for m in get_modules_from_all_apps()))
 
 	def before_insert(self):
 		self.flags.in_insert = True
@@ -74,6 +74,7 @@ class User(Document):
 			self.validate_email_type(self.email)
 			self.validate_email_type(self.name)
 		self.add_system_manager_role()
+		self.check_roles_added()
 		self.set_system_user()
 		self.set_full_name()
 		self.check_enable_disable()
@@ -281,6 +282,10 @@ class User(Document):
 				self.email_new_password(new_password)
 
 		except frappe.OutgoingEmailError:
+			frappe.clear_last_message()
+			frappe.msgprint(
+				_("Please setup default outgoing Email Account from Settings > Email Account"), alert=True
+			)
 			# email server not set, don't send email
 			self.log_error("Unable to send new password notification")
 
@@ -649,6 +654,21 @@ class User(Document):
 	def set_time_zone(self):
 		if not self.time_zone:
 			self.time_zone = get_system_timezone()
+
+	def check_roles_added(self):
+		if self.user_type != "System User" or self.roles or not self.is_new():
+			return
+
+		frappe.msgprint(
+			_("Newly created user {0} has no roles enabled.").format(frappe.bold(self.name)),
+			title=_("No Roles Specified"),
+			indicator="orange",
+			primary_action={
+				"label": _("Add Roles"),
+				"client_action": "frappe.set_route",
+				"args": ["Form", self.doctype, self.name],
+			},
+		)
 
 
 @frappe.whitelist()
