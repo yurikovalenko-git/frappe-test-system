@@ -43,13 +43,13 @@ def frequently_visited_links():
 
 
 @frappe.whitelist()
-def route_history():
+def route_history(max_route: int = 10):
 	route_history = frappe.get_list(
 		'Route History',
 		fields=['route'],
 		filters={"user": frappe.session.user},
 		order_by='creation desc',
-		limit_page_length=50)
+		limit_page_length=max_route * 4)
 	unique_routes = []
 	for route_doc in route_history:
 		if route_doc['route'] not in unique_routes:
@@ -62,7 +62,6 @@ def route_history():
 	doctype_title_fields = {}
 	for route_doc in unique_routes:
 		path = route_doc.split('/')
-		print(2222, path)
 		doc_info = {"view_name": path[0]}
 		if len(path) > 1:
 			doc_info["doctype"] = path[1]
@@ -70,7 +69,6 @@ def route_history():
 			doc_info.update({
 				"doc_name": path[2],
 				"doc_title": None,
-				# "title_field": None
 			})
 			doctypes.setdefault(doc_info['doctype'], list())
 			doctypes[doc_info['doctype']].append(doc_info['doc_name'])
@@ -80,8 +78,6 @@ def route_history():
 	for doctype in doctypes:
 		doctype_meta = frappe.get_meta(doctype)
 		doctype_title_fields[doctype] = doctype_meta.title_field
-		from pprint import pprint
-		# pprint(vars(frappe.get_meta(doctype)))
 		if not doctype_meta.issingle:
 			for doc in frappe.get_list(
 				doctype,
@@ -93,13 +89,8 @@ def route_history():
 		else:
 			doc_names_by_doctype[doctype] = {doctype_meta.name: ""}
 
-
-
 	for i in range(len(out)):
 		if 'doc_title' in out[i]:
-			# doctype = route['doctype']
-			# doc_name = route['doc_name']
-			# out['doc_title'] = doc_names_by_doctype[doctype][doc_name]
 			if len(doc_names_by_doctype[out[i]['doctype']]) > 0 and out[i]['doc_name'] in doc_names_by_doctype[out[i]['doctype']]:
 				out[i]['doc_title'] = doc_names_by_doctype[out[i]['doctype']][out[i]['doc_name']]
 	return out
