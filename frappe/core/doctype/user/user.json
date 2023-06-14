@@ -214,6 +214,7 @@
    "read_only": 1
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "role_profile_name",
    "fieldtype": "Link",
    "label": "Role Profile",
