@@ -58,13 +58,12 @@ frappe.breadcrumbs = {
 		var breadcrumbs = this.all[frappe.breadcrumbs.current_page()];
 
 		if (!this.route_history_enabled) {
-			frappe.db
-				.get_doc("User", frappe.session.user)
-				.then(doc => {
-					this.route_history_enabled = Boolean(doc['route_history_breadcrumbers']);
-					this.max_routes_display = doc['max_routes_display'] > 0 ? doc['max_routes_display'] : 10;
-					if (this.route_history_enabled) this.update();
-				});
+			frappe.db.get_doc("User", frappe.session.user).then(doc => {
+				this.route_history_enabled = Boolean(doc["route_history_breadcrumbers"]);
+				this.max_routes_display =
+					doc["max_routes_display"] > 0 ? doc["max_routes_display"] : 10;
+				if (this.route_history_enabled) this.update();
+			});
 		}
 
 		if (this.route_history_enabled) {
@@ -104,16 +103,20 @@ frappe.breadcrumbs = {
 		// ) {
 		// 	frappe.doc_name = frappe.route_history[last_obj_index][2];
 		// }
-		frappe.doc_name = frappe.route_history[frappe.route_history.length - 1].join('/');
+		frappe.doc_name = frappe.route_history[frappe.route_history.length - 1].join("/");
 		// frappe.doc_name = frappe.get_route().slice(2).join("/");
 		return frappe.doc_name;
 	},
 
 	add_to_navbar(to_menu, url, name, title) {
 		if (to_menu) {
-			$(`<a class="dropdown-item" href="${url}" title="${title}">${__(name)}</a>`).prependTo(this.$modal_breadcrumbs);
+			$(`<a class="dropdown-item" href="${url}" title="${title}">${name}</a>`).prependTo(
+				this.$modal_breadcrumbs
+			);
 		} else {
-			$(`<li title="${title}"><a href="${url}">${__(name)}</a></li>`).prependTo(this.$breadcrumbs);
+			$(`<li title="${title}"><a href="${url}">${name}</a></li>`).prependTo(
+				this.$breadcrumbs
+			);
 		}
 	},
 
@@ -121,15 +124,17 @@ frappe.breadcrumbs = {
 		let hist_obj_str = [route["view_name"]];
 		hist_obj_str.push(route["doctype"]);
 		if (route.hasOwnProperty("doc_name")) hist_obj_str.push(route["doc_name"]);
-		return hist_obj_str.join('/')
+		return hist_obj_str.join("/");
 	},
 
 	set_history_objects(breadcrumbs) {
 		this.set_current_doc_name();
 		if (frappe.doc_name != frappe.last_route_doc) {
 			// By default this.set_history_objects() executes several times. If condition needs for prevent multi execution.
-			frappe.call("frappe.desk.doctype.route_history.route_history.route_history",
-				{max_route: this.max_routes_display})
+			frappe
+				.call("frappe.desk.doctype.route_history.route_history.route_history", {
+					max_route: this.max_routes_display
+				})
 				.then(r => {
 					frappe.last_route_doc = frappe.doc_name;
 					this.clear();
@@ -139,20 +144,38 @@ frappe.breadcrumbs = {
 					} else {
 						$("#navbar-route-history-menu").addClass("show");
 					}
+
 					let count_elem_navbar = 2;
 					for (let i in route_history) {
-						if (this.get_history_path_str_by_obj(route_history[i]) === frappe.doc_name) {
-							if (i <=2) count_elem_navbar++;
-							continue
+						console.log(this.get_history_path_str_by_obj(route_history[i]));
+						if (
+							(!frappe.is_small_screen &&
+								this.get_history_path_str_by_obj(route_history[i]) ===
+									frappe.doc_name) ||
+							this.get_history_path_str_by_obj(route_history[i]) ===
+								"Workspaces/Home"
+						) {
+							if (i <= 2) count_elem_navbar++;
+							continue;
 						}
-						let to_menu = i >= count_elem_navbar;
+						let to_menu = frappe.is_small_screen || i >= count_elem_navbar;
 						if (route_history[i]["view_name"] == "Form") {
 							let form_route = `/app/${frappe.router.slug(
 								route_history[i]["doctype"]
 							)}/${route_history[i]["doc_name"]}`;
-							this.add_to_navbar(to_menu, form_route, route_history[i]["doc_name"], route_history[i]["doc_title"]);
+							this.add_to_navbar(
+								to_menu,
+								form_route,
+								route_history[i]["doc_name"],
+								route_history[i]["doc_title"]
+							);
 						} else if (route_history[i]["view_name"] == "Workspaces") {
-							this.add_to_navbar(to_menu, `/app/${frappe.router.slug(route_history[i]["doctype"])}`, __(route_history[i]["doctype"]), __(route_history[i]["doctype"]));
+							this.add_to_navbar(
+								to_menu,
+								`/app/${frappe.router.slug(route_history[i]["doctype"])}`,
+								__(route_history[i]["doctype"]),
+								__(route_history[i]["doctype"])
+							);
 						} else if (route_history[i]["view_name"] == "List") {
 							let route;
 							const doctype_meta = frappe.get_doc(
@@ -165,7 +188,12 @@ frappe.breadcrumbs = {
 							} else {
 								route = doctype_route;
 							}
-							this.add_to_navbar(to_menu, `/app/${route}`, __(route_history[i]["doctype"]), __(route_history[i]["doctype"]));
+							this.add_to_navbar(
+								to_menu,
+								`/app/${route}`,
+								__(route_history[i]["doctype"]),
+								__(route_history[i]["doctype"])
+							);
 						}
 						if (i - count_elem_navbar + 1 >= this.max_routes_display) break;
 					}
@@ -177,14 +205,23 @@ frappe.breadcrumbs = {
 							view = view ? view.toLowerCase() : null;
 							if (breadcrumbs.doctype && ["print", "form"].includes(view)) {
 								this.set_form_breadcrumb(breadcrumbs, view);
+								$(`<li>1111</li>`).appendTo(this.$breadcrumbs);
+								console.log(1111);
 							} else if (breadcrumbs.doctype && view === "list") {
 								this.set_list_breadcrumb(breadcrumbs);
+								$(`<li>2222</li>`).appendTo(this.$breadcrumbs);
+								console.log(2222);
 							} else if (breadcrumbs.doctype && view == "dashboard-view") {
 								this.set_list_breadcrumb(breadcrumbs);
 								this.set_dashboard_breadcrumb(breadcrumbs);
+								$(`<li>3333</li>`).appendTo(this.$breadcrumbs);
+								console.log(3333);
 							}
 						}
 					}
+
+					if (frappe.is_small_screen)
+						this.add_to_navbar(true, "/app/", __("Home"), __("Home"));
 				});
 		}
 	},

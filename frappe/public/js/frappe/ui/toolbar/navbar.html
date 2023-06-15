@@ -1,14 +1,15 @@
 <header class="navbar navbar-expand sticky-top" role="navigation">
 	<div class="container">
-		<a class="navbar-brand navbar-home" href="/app">
+		<a id="navbar-logo" class="navbar-brand navbar-home" href="/app">
 			<img class="app-logo" style="width: {{ navbar_settings.logo_width || 125 }}px; padding-bottom: 2px" src="{{ frappe.boot.app_logo_url }}">
 		</a>
-		<ul class="nav navbar-nav d-none d-sm-flex" id="navbar-route-history-menu">
-			<li class="nav-item dropdown dropdown-help dropdown-mobile d-none d-lg-block">
+		<ul class="nav navbar-nav d-sm-flex" id="navbar-route-history-menu">
+			<li class="nav-item dropdown dropdown-help dropdown-mobile d-lg-block">
 				<a class="nav-link" data-toggle="dropdown" href="#" onclick="return false;">
-					<span class="icon-menu">
+					<span id="navbar-breadcrumbs-menu-icon" class="icon-menu">
 						<svg class="icon icon-md"><use href="#icon-menu"></use></svg>
 					</span>
+					<img id="navbar-breadcrumbs-menu-logo" class="app-logo" style="width: {{ navbar_settings.logo_width || 125 }}px; padding-bottom: 2px" src="{{ frappe.boot.app_logo_url }}">
 				</a>
 				<div class="dropdown-menu dropdown-menu-left" id="navbar-route-history" role="menu"></div>
 			</li>
