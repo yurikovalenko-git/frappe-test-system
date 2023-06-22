@@ -88,7 +88,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 
 	render_gantt() {
 		const me = this;
-		const gantt_view_mode = this.view_user_settings.gantt_view_mode || "Day";
+		const gantt_view_mode = "Month";
 		const field_map = this.calendar_settings.field_map;
 		const date_format = "YYYY-MM-DD";
 
