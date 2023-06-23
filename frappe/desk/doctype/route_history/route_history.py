@@ -91,6 +91,6 @@ def route_history(max_route: int = 10):
 
 	for i in range(len(out)):
 		if 'doc_title' in out[i]:
-			if len(doc_names_by_doctype[out[i]['doctype']]) > 0 and out[i]['doc_name'] in doc_names_by_doctype[out[i]['doctype']]:
+			if out[i]['doctype'] in doc_names_by_doctype and len(doc_names_by_doctype[out[i]['doctype']]) > 0 and out[i]['doc_name'] in doc_names_by_doctype[out[i]['doctype']]:
 				out[i]['doc_title'] = doc_names_by_doctype[out[i]['doctype']][out[i]['doc_name']]
 	return out
