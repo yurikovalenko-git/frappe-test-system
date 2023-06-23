@@ -147,7 +147,6 @@ frappe.breadcrumbs = {
 
 					let count_elem_navbar = 2;
 					for (let i in route_history) {
-						console.log(this.get_history_path_str_by_obj(route_history[i]));
 						if (
 							(!frappe.is_small_screen &&
 								this.get_history_path_str_by_obj(route_history[i]) ===
@@ -205,17 +204,11 @@ frappe.breadcrumbs = {
 							view = view ? view.toLowerCase() : null;
 							if (breadcrumbs.doctype && ["print", "form"].includes(view)) {
 								this.set_form_breadcrumb(breadcrumbs, view);
-								$(`<li>1111</li>`).appendTo(this.$breadcrumbs);
-								console.log(1111);
 							} else if (breadcrumbs.doctype && view === "list") {
 								this.set_list_breadcrumb(breadcrumbs);
-								$(`<li>2222</li>`).appendTo(this.$breadcrumbs);
-								console.log(2222);
 							} else if (breadcrumbs.doctype && view == "dashboard-view") {
 								this.set_list_breadcrumb(breadcrumbs);
 								this.set_dashboard_breadcrumb(breadcrumbs);
-								$(`<li>3333</li>`).appendTo(this.$breadcrumbs);
-								console.log(3333);
 							}
 						}
 					}
