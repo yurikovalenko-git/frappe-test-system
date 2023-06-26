@@ -115,6 +115,13 @@
 		.gantt-container {
 			width: 60%;
 			border-left: 3px solid #dee8f0;
+
+			.gantt {
+
+				.today-highlight {
+					fill: #e6ddb0;
+				}
+			}
 		}
 	}
 
