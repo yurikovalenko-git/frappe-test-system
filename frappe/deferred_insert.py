@@ -23,6 +23,7 @@ def deferred_insert(doctype: str, records: list[Union[dict, "Document"]] | str):
 	except redis.exceptions.ConnectionError:
 		for record in records:
 			insert_record(record, doctype)
+	save_to_db()
 
 
 def save_to_db():
