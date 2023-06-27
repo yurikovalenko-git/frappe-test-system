@@ -38,6 +38,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		var field_map = this.calendar_settings.field_map;
 
 		this.tasks = this.data.map(function (item) {
+			console.log(item);
 			// set progress
 			var progress = 0;
 			if (field_map.progress && $.isFunction(field_map.progress)) {
@@ -64,7 +65,13 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 				doctype: me.doctype,
 				progress: progress,
 				dependencies: item.depends_on_tasks || "",
+				status: item.status,
+				start_date: item.exp_start_date,
+				end_date: item.exp_end_date,
+				assign: item._assign ? JSON.parse(item._assign) : ['-'],
 			};
+
+			console.log('item._assign', r.assign);
 
 			if (item.color && frappe.ui.color.validate_hex(item.color)) {
 				r["custom_class"] = "color-" + item.color.substr(1);
@@ -88,7 +95,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 
 	render_gantt() {
 		const me = this;
-		const gantt_view_mode = this.view_user_settings.gantt_view_mode || "Day";
+		const gantt_view_mode = this.view_user_settings.gantt_view_mode || "Month";
 		const field_map = this.calendar_settings.field_map;
 		const date_format = "YYYY-MM-DD";
 
@@ -178,7 +185,68 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 					.join("")}
 			</div>`;
 
+		const htmlTest = `<div class="gantt-table">
+			<header class="level list-row-head text-muted">
+				<div class="level-left list-header-subject">
+					<div class="list-row-col ellipsis list-subject level">
+						<span class="level-item">Subject</span>
+					</div>
+					<div class="list-row-col ellipsis list-subject level">
+						<span class="level-item">Status</span>
+					</div>
+					<div class="list-row-col ellipsis list-subject level">
+						<span class="level-item">Assignee</span>
+					</div>
+					<div class="list-row-col ellipsis list-subject level">
+						<span class="level-item">Type</span>
+					</div>
+				</div>
+			</header>
+			${this.tasks
+			.map( (value) =>
+			`<div class="list-row-container" tabindex="1">
+				<div class="level list-row">
+					<div class="list-row-col ellipsis list-subject level">
+						<span class="level-item  ellipsis" title="test task 2">
+							<a class="ellipsis" href="/app/task/${value.id}" title="test task 2" data-doctype="Task" data-name="test task 2">
+								${value.name}
+							</a>
+						</span>
+					</div>
+					<div class="list-row-col ellipsis list-subject level">
+						<span class="level-item  ellipsis" title="test task 2">
+							<a class="ellipsis" href="/app/task/${value.id}" title="test task 2" data-doctype="Task" data-name="test task 2">
+								${value.status}
+							</a>
+						</span>
+					</div>
+					<div class="list-row-col ellipsis list-subject level">
+						<span class="level-item  ellipsis" title="test task 2">
+							${value.assign
+							.map( (assign) =>
+							`<span class="avatar avatar-small  filterable" title="Administrator" data-filter="_assign,like,%Administrator%">
+								<div class="avatar-frame standard-image" style="background-color: var(--dark-green-avatar-bg); color: var(--dark-green-avatar-color)">
+									${assign.substring(0, 1)}
+								</div>
+							</span>
+							`).join("")}
+						</span>
+					</div>
+					<div class="list-row-col ellipsis list-subject level">
+						<span class="level-item  ellipsis" title="test task 2">
+							<a class="ellipsis" href="/app/task/${value.id}" title="test task 2" data-doctype="Task" data-name="test task 2">
+								${value.doctype}
+							</a>
+						</span>
+					</div>
+				</div>
+			</div>`).join("")}
+		</div>`;
+
+
 		this.$paging_area.find(".level-left").append(html);
+		this.$frappe_list.find(".gantt-modern").append(htmlTest);
+		console.log(this.tasks);
 
 		// change view mode asynchronously
 		const change_view_mode = (value) =>
