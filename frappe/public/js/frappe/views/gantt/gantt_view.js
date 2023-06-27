@@ -68,7 +68,10 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 				status: item.status,
 				start_date: item.exp_start_date,
 				end_date: item.exp_end_date,
+				assign: item._assign ? JSON.parse(item._assign) : ['-'],
 			};
+
+			console.log('item._assign', r.assign);
 
 			if (item.color && frappe.ui.color.validate_hex(item.color)) {
 				r["custom_class"] = "color-" + item.color.substr(1);
@@ -205,31 +208,34 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 				<div class="level list-row">
 					<div class="list-row-col ellipsis list-subject level">
 						<span class="level-item  ellipsis" title="test task 2">
-							<a class="ellipsis" href="/app/task/TASK-2023-00002" title="test task 2" data-doctype="Task" data-name="test task 2">
+							<a class="ellipsis" href="/app/task/${value.id}" title="test task 2" data-doctype="Task" data-name="test task 2">
 								${value.name}
 							</a>
 						</span>
 					</div>
 					<div class="list-row-col ellipsis list-subject level">
 						<span class="level-item  ellipsis" title="test task 2">
-							<a class="ellipsis" href="/app/task/TASK-2023-00002" title="test task 2" data-doctype="Task" data-name="test task 2">
+							<a class="ellipsis" href="/app/task/${value.id}" title="test task 2" data-doctype="Task" data-name="test task 2">
 								${value.status}
 							</a>
 						</span>
 					</div>
 					<div class="list-row-col ellipsis list-subject level">
 						<span class="level-item  ellipsis" title="test task 2">
-							<span class="avatar avatar-small  filterable" title="Administrator" data-filter="_assign,like,%Administrator%">
+							${value.assign
+							.map( (assign) =>
+							`<span class="avatar avatar-small  filterable" title="Administrator" data-filter="_assign,like,%Administrator%">
 								<div class="avatar-frame standard-image" style="background-color: var(--dark-green-avatar-bg); color: var(--dark-green-avatar-color)">
-										A
+									${assign.substring(0, 1)}
 								</div>
 							</span>
+							`).join("")}
 						</span>
 					</div>
 					<div class="list-row-col ellipsis list-subject level">
 						<span class="level-item  ellipsis" title="test task 2">
-							<a class="ellipsis" href="/app/task/TASK-2023-00002" title="test task 2" data-doctype="Task" data-name="test task 2">
-								Phase
+							<a class="ellipsis" href="/app/task/${value.id}" title="test task 2" data-doctype="Task" data-name="test task 2">
+								${value.doctype}
 							</a>
 						</span>
 					</div>
