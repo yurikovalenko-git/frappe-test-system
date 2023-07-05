@@ -15,11 +15,10 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 			}
 
 			if (this.calendar_settings.order_by) {
-				this.sort_by = this.calendar_settings.order_by;
+				this.sort_by = this.calendar_settings.field_map.start;
 				this.sort_order = "asc";
 			} else {
-				this.sort_by =
-					this.view_user_settings.sort_by || this.calendar_settings.field_map.start;
+				this.sort_by = this.calendar_settings.field_map.start;
 				this.sort_order = this.view_user_settings.sort_order || "asc";
 			}
 		});
@@ -69,6 +68,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 				start_date: item.exp_start_date,
 				end_date: item.exp_end_date,
 				assign: item._assign ? JSON.parse(item._assign) : ['-'],
+				is_group: item.is_group,
 			};
 
 			console.log('item._assign', r.assign);
@@ -160,8 +160,8 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 				return '<div class="details-container">' + html + "</div>";
 			},
 		});
-		this.setup_view_mode_buttons();
 		this.set_colors();
+		this.setup_view_mode_buttons();
 	}
 
 	setup_view_mode_buttons() {
@@ -192,13 +192,22 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 						<span class="level-item">Subject</span>
 					</div>
 					<div class="list-row-col ellipsis list-subject level">
+						<span class="level-item">Start date</span>
+					</div>
+					<div class="list-row-col ellipsis list-subject level">
+						<span class="level-item">End date</span>
+					</div>
+					<div class="list-row-col ellipsis list-subject level">
 						<span class="level-item">Status</span>
 					</div>
 					<div class="list-row-col ellipsis list-subject level">
 						<span class="level-item">Assignee</span>
 					</div>
 					<div class="list-row-col ellipsis list-subject level">
-						<span class="level-item">Type</span>
+						<span class="level-item">Dependencies</span>
+					</div>
+					<div class="list-row-col ellipsis list-subject level">
+						<span class="level-item">Duration</span>
 					</div>
 				</div>
 			</header>
@@ -210,6 +219,20 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 						<span class="level-item  ellipsis" title="test task 2">
 							<a class="ellipsis" href="/app/task/${value.id}" title="test task 2" data-doctype="Task" data-name="test task 2">
 								${value.name}
+							</a>
+						</span>
+					</div>
+					<div class="list-row-col ellipsis list-subject level">
+						<span class="level-item  ellipsis" title="test task 2">
+							<a class="ellipsis" href="/app/task/${value.id}" title="test task 2" data-doctype="Task" data-name="test task 2">
+								${value.start_date}
+							</a>
+						</span>
+					</div>
+					<div class="list-row-col ellipsis list-subject level">
+						<span class="level-item  ellipsis" title="test task 2">
+							<a class="ellipsis" href="/app/task/${value.id}" title="test task 2" data-doctype="Task" data-name="test task 2">
+								${value.end_date}
 							</a>
 						</span>
 					</div>
@@ -235,7 +258,14 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 					<div class="list-row-col ellipsis list-subject level">
 						<span class="level-item  ellipsis" title="test task 2">
 							<a class="ellipsis" href="/app/task/${value.id}" title="test task 2" data-doctype="Task" data-name="test task 2">
-								${value.doctype}
+								${value.dependencies}
+							</a>
+						</span>
+					</div>
+					<div class="list-row-col ellipsis list-subject level">
+						<span class="level-item  ellipsis" title="test task 2">
+							<a class="ellipsis" href="/app/task/${value.id}" title="test task 2" data-doctype="Task" data-name="test task 2">
+								${Math.floor(Math.abs(new Date(value.end_date) - new Date(value.start_date)) / (3600000*24))} days
 							</a>
 						</span>
 					</div>
@@ -285,6 +315,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 
 		style = `<style>${style}</style>`;
 		this.$result.prepend(style);
+		console.log('classes', classes);
 	}
 
 	get_item(name) {
