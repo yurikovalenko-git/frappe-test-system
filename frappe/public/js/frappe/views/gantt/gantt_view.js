@@ -37,7 +37,6 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		var field_map = this.calendar_settings.field_map;
 
 		this.tasks = this.data.map(function (item) {
-			console.log(item);
 			// set progress
 			var progress = 0;
 			if (field_map.progress && $.isFunction(field_map.progress)) {
@@ -71,7 +70,6 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 				is_group: item.is_group,
 			};
 
-			console.log('item._assign', r.assign);
 
 			if (item.color && frappe.ui.color.validate_hex(item.color)) {
 				r["custom_class"] = "color-" + item.color.substr(1);
