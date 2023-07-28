@@ -68,6 +68,8 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 				end_date: item.exp_end_date,
 				assign: item._assign ? JSON.parse(item._assign) : ['-'],
 				is_group: item.is_group,
+				project: item.project,
+				parent_task: item.parent_task
 			};
 
 
@@ -78,6 +80,8 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 			if (item.is_milestone) {
 				r["custom_class"] = "bar-milestone";
 			}
+
+			console.log('item', item);
 
 			return r;
 		});
@@ -207,6 +211,9 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 					<div class="list-row-col ellipsis list-subject level">
 						<span class="level-item">Duration</span>
 					</div>
+					<div class="list-row-col ellipsis list-subject level">
+						<span class="level-item">Project</span>
+					</div>
 				</div>
 			</header>
 			${this.tasks
@@ -264,6 +271,13 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 						<span class="level-item  ellipsis" title="test task 2">
 							<a class="ellipsis" href="/app/task/${value.id}" title="test task 2" data-doctype="Task" data-name="test task 2">
 								${Math.floor(Math.abs(new Date(value.end_date) - new Date(value.start_date)) / (3600000*24))} days
+							</a>
+						</span>
+					</div>
+					<div class="list-row-col ellipsis list-subject level">
+						<span class="level-item  ellipsis" title="test task 2">
+							<a class="ellipsis" href="/app/task/${value.id}" title="test task 2" data-doctype="Task" data-name="test task 2">
+								${value.project}
 							</a>
 						</span>
 					</div>

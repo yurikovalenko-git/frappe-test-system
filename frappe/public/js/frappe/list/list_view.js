@@ -191,7 +191,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.sort_by,
 			"enabled",
 			"disabled",
-			"color"
+			"color",
+			"parent_task",
+			"project"
 		);
 
 		await Promise.all(
