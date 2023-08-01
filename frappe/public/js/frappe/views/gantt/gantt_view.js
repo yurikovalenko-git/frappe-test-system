@@ -29,6 +29,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 	prepare_data(data) {
 		super.prepare_data(data);
 		this.prepare_tasks();
+		this.sort_task();
 	}
 
 	prepare_tasks() {
@@ -37,7 +38,6 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		var field_map = this.calendar_settings.field_map;
 
 		this.tasks = this.data.map(function (item) {
-			console.log(item);
 			// set progress
 			var progress = 0;
 			if (field_map.progress && $.isFunction(field_map.progress)) {
@@ -69,9 +69,12 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 				end_date: item.exp_end_date,
 				assign: item._assign ? JSON.parse(item._assign) : ['-'],
 				is_group: item.is_group,
+				project: item.project,
+				parent_task: item.parent_task,
+				order_id: 0,
+				level: item.parent_task ? 1 : 0
 			};
 
-			console.log('item._assign', r.assign);
 
 			if (item.color && frappe.ui.color.validate_hex(item.color)) {
 				r["custom_class"] = "color-" + item.color.substr(1);
@@ -81,8 +84,30 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 				r["custom_class"] = "bar-milestone";
 			}
 
+			console.log('item', item);
+
 			return r;
 		});
+	}
+
+	sort_task() {
+		this.tasks.sort((a, b) => {
+			if (a.name > b.name) {
+				return 1;
+			}
+		});
+		this.tasks.map((item, index) => item.order_id = index);
+		this.tasks.map((item, index) => {
+			if (item.parent_task) {
+				console.log('parent', this.tasks.find(o => o.id === item.parent_task));
+				const parentTask = this.tasks.find(o => o.id === item.parent_task);
+				item.order_id = parentTask.order_id;
+			}
+		});
+		this.tasks.sort((a, b) => {
+			return a.order_id - b.order_id;
+		});
+		console.log('sorted_task', this.tasks)
 	}
 
 	render() {
@@ -209,12 +234,15 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 					<div class="list-row-col ellipsis list-subject level">
 						<span class="level-item">Duration</span>
 					</div>
+					<div class="list-row-col ellipsis list-subject level">
+						<span class="level-item">Project</span>
+					</div>
 				</div>
 			</header>
 			${this.tasks
 			.map( (value) =>
 			`<div class="list-row-container" tabindex="1">
-				<div class="level list-row">
+				<div class="level list-row ${value.level ? 'child-task' : ''}">
 					<div class="list-row-col ellipsis list-subject level">
 						<span class="level-item  ellipsis" title="test task 2">
 							<a class="ellipsis" href="/app/task/${value.id}" title="test task 2" data-doctype="Task" data-name="test task 2">
@@ -266,6 +294,13 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 						<span class="level-item  ellipsis" title="test task 2">
 							<a class="ellipsis" href="/app/task/${value.id}" title="test task 2" data-doctype="Task" data-name="test task 2">
 								${Math.floor(Math.abs(new Date(value.end_date) - new Date(value.start_date)) / (3600000*24))} days
+							</a>
+						</span>
+					</div>
+					<div class="list-row-col ellipsis list-subject level">
+						<span class="level-item  ellipsis" title="test task 2">
+							<a class="ellipsis" href="/app/task/${value.id}" title="test task 2" data-doctype="Task" data-name="test task 2">
+								${value.project}
 							</a>
 						</span>
 					</div>
