@@ -84,8 +84,6 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 				r["custom_class"] = "bar-milestone";
 			}
 
-			console.log('item', item);
-
 			return r;
 		});
 	}
@@ -101,7 +99,9 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 			if (item.parent_task) {
 				console.log('parent', this.tasks.find(o => o.id === item.parent_task));
 				const parentTask = this.tasks.find(o => o.id === item.parent_task);
-				item.order_id = parentTask.order_id;
+				if (parentTask) {
+					item.order_id = parentTask.order_id;
+				}
 			}
 		});
 		this.tasks.sort((a, b) => {
