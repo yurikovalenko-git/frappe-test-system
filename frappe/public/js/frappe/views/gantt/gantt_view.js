@@ -113,6 +113,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 	render() {
 		this.load_lib.then(() => {
 			this.render_gantt();
+			this.create_table();
 		});
 	}
 
@@ -189,28 +190,8 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		this.setup_view_mode_buttons();
 	}
 
-	setup_view_mode_buttons() {
-		// view modes (for translation) __("Day"), __("Week"), __("Month"),
-		//__("Half Day"), __("Quarter Day")
-
-		let $btn_group = this.$paging_area.find(".gantt-view-mode");
-		if ($btn_group.length > 0) return;
-
-		const view_modes = this.gantt.options.view_modes || [];
-		const active_class = (view_mode) => (this.gantt.view_is(view_mode) ? "btn-info" : "");
-		const html = `<div class="btn-group gantt-view-mode">
-				${view_modes
-					.map(
-						(value) => `<button type="button"
-						class="btn btn-default btn-sm btn-view-mode ${active_class(value)}"
-						data-value="${value}">
-						${__(value)}
-					</button>`
-					)
-					.join("")}
-			</div>`;
-
-		const htmlTest = `<div class="gantt-table">
+	create_table() {
+		const table = `<div class="gantt-table">
 			<header class="level list-row-head text-muted">
 				<div class="level-left list-header-subject">
 					<div class="list-row-col ellipsis list-subject level">
@@ -241,7 +222,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 			</header>
 			${this.tasks
 			.map( (value) =>
-			`<div class="list-row-container" tabindex="1">
+				`<div class="list-row-container" tabindex="1">
 				<div class="level list-row ${value.level ? 'child-task' : ''}">
 					<div class="list-row-col ellipsis list-subject level">
 						<span class="level-item  ellipsis" title="test task 2">
@@ -274,8 +255,8 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 					<div class="list-row-col ellipsis list-subject level">
 						<span class="level-item  ellipsis" title="test task 2">
 							${value.assign
-							.map( (assign) =>
-							`<span class="avatar avatar-small  filterable" title="Administrator" data-filter="_assign,like,%Administrator%">
+					.map( (assign) =>
+						`<span class="avatar avatar-small  filterable" title="Administrator" data-filter="_assign,like,%Administrator%">
 								<div class="avatar-frame standard-image" style="background-color: var(--dark-green-avatar-bg); color: var(--dark-green-avatar-color)">
 									${assign.substring(0, 1)}
 								</div>
@@ -308,9 +289,32 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 			</div>`).join("")}
 		</div>`;
 
+		this.$frappe_list.find(".gantt-modern").append(table);
+	}
+
+	setup_view_mode_buttons() {
+		// view modes (for translation) __("Day"), __("Week"), __("Month"),
+		//__("Half Day"), __("Quarter Day")
+
+		let $btn_group = this.$paging_area.find(".gantt-view-mode");
+		if ($btn_group.length > 0) return;
+
+		const view_modes = this.gantt.options.view_modes || [];
+		const active_class = (view_mode) => (this.gantt.view_is(view_mode) ? "btn-info" : "");
+		const html = `<div class="btn-group gantt-view-mode">
+				${view_modes
+					.map(
+						(value) => `<button type="button"
+						class="btn btn-default btn-sm btn-view-mode ${active_class(value)}"
+						data-value="${value}">
+						${__(value)}
+					</button>`
+					)
+					.join("")}
+			</div>`;
+
 
 		this.$paging_area.find(".level-left").append(html);
-		this.$frappe_list.find(".gantt-modern").append(htmlTest);
 		console.log(this.tasks);
 
 		// change view mode asynchronously
