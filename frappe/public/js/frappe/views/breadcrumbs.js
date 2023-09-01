@@ -37,6 +37,7 @@ frappe.breadcrumbs = {
 
 	add(module, doctype, type) {
 		let obj;
+		console.log("Here");
 		if (typeof module === "object") {
 			obj = module;
 		} else {
