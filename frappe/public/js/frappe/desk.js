@@ -153,6 +153,47 @@ frappe.Application = class Application {
 
 		// REDESIGN-TODO: Fix preview popovers
 		this.link_preview = new frappe.ui.LinkPreview();
+
+
+
+		if (!frappe.boot.developer_mode) {
+			if (frappe.user.has_role("System Manager")) {
+				setInterval(function () {
+					frappe.call({
+						method: "frappe.core.doctype.log_settings.log_settings.has_unseen_error_log",
+						args: {
+							user: frappe.session.user,
+						},
+						callback: function (r) {
+							if (r.message && r.message.show_alert) {
+								frappe.show_alert({
+									indicator: "red",
+									message: r.message.message,
+								});
+							}
+						},
+					});
+				}, 600000); // check every 10 minutes
+			}
+		}
+
+		window.onresize = this.window_size;
+		this.window_size();
+	}
+
+	window_size() {
+		if (window.innerWidth < 567) {
+			frappe.is_small_screen = true;
+			$("#navbar-logo").hide();
+			$("#navbar-breadcrumbs-menu-icon").hide();
+			$("#navbar-breadcrumbs-menu-logo").show();
+		} else {
+			frappe.is_small_screen = false;
+			$("#navbar-logo").show();
+			$("#navbar-breadcrumbs-menu-icon").show();
+			$("#navbar-breadcrumbs-menu-logo").hide();
+		}
+
 	}
 
 	set_route() {

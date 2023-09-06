@@ -25,3 +25,9 @@
 		}
 	}
 }
+#navbar-route-history-menu {
+	visibility: hidden;
+	&.show {
+		visibility: visible;
+	}
+}
