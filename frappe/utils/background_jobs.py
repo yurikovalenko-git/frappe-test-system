@@ -1,3 +1,4 @@
+import gc
 import os
 import socket
 import time
@@ -17,7 +18,7 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fi
 import frappe
 import frappe.monitor
 from frappe import _
-from frappe.utils import cstr, get_bench_id
+from frappe.utils import cint, cstr, get_bench_id
 from frappe.utils.commands import log
 from frappe.utils.redis_queue import RedisQueue
 
@@ -27,6 +28,7 @@ if TYPE_CHECKING:
 
 # TTL to keep RQ job logs in redis for.
 RQ_JOB_FAILURE_TTL = 7 * 24 * 60 * 60  # 7 days instead of 1 year (default)
+RQ_FAILED_JOBS_LIMIT = 1000  # Only keep these many recent failed jobs around
 RQ_RESULTS_TTL = 10 * 60
 
 
@@ -118,6 +120,7 @@ def enqueue(
 		"is_async": is_async,
 		"kwargs": kwargs,
 	}
+
 	if enqueue_after_commit:
 		if not frappe.flags.enqueue_after_commit:
 			frappe.flags.enqueue_after_commit = []
@@ -141,6 +144,7 @@ def enqueue(
 		failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
 		result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
 		job_id=job_id,
+		on_failure=truncate_failed_registry,
 	)
 
 
@@ -237,6 +241,10 @@ def start_worker(
 	"""Wrapper to start rq worker. Connects to redis and monitors these queues."""
 	DEQUEUE_STRATEGIES = {"round_robin": RoundRobinWorker, "random": RandomWorker}
 
+	if frappe._tune_gc:
+		gc.collect()
+		gc.freeze()
+
 	with frappe.init_site():
 		# empty init is required to get redis_queue from common_site_config.json
 		redis_connection = get_redis_conn(username=rq_username, password=rq_password)
@@ -249,6 +257,7 @@ def start_worker(
 	if os.environ.get("CI"):
 		setup_loghandlers("ERROR")
 
+	set_niceness()
 	WorkerKlass = DEQUEUE_STRATEGIES.get(strategy, Worker)
 
 	with Connection(redis_connection):
@@ -396,9 +405,9 @@ def get_redis_conn(username=None, password=None):
 		raise
 
 
-def get_queues() -> list[Queue]:
+def get_queues(connection=None) -> list[Queue]:
 	"""Get all the queues linked to the current bench."""
-	queues = Queue.all(connection=get_redis_conn())
+	queues = Queue.all(connection=connection or get_redis_conn())
 	return [q for q in queues if is_queue_accessible(q)]
 
 
@@ -443,3 +452,39 @@ def is_job_enqueued(job_id: str) -> str:
 		return False
 
 	return job.get_status() in ("queued", "started")
+
+
+BACKGROUND_PROCESS_NICENESS = 10
+
+
+def set_niceness():
+	"""Background processes should have slightly lower priority than web processes.
+
+	Calling this function increments the niceness of process by configured value or default.
+	Note: This function should be called only once in process' lifetime.
+	"""
+
+	conf = frappe.get_conf()
+	nice_increment = BACKGROUND_PROCESS_NICENESS
+
+	configured_niceness = conf.get("background_process_niceness")
+
+	if configured_niceness is not None:
+		nice_increment = cint(configured_niceness)
+
+	os.nice(nice_increment)
+
+
+def truncate_failed_registry(job, connection, type, value, traceback):
+	"""Ensures that number of failed jobs don't exceed specified limits."""
+	from frappe.utils import create_batch
+
+	conf = frappe.get_conf(site=job.kwargs.get("site"))
+	limit = (conf.get("rq_failed_jobs_limit") or RQ_FAILED_JOBS_LIMIT) - 1
+
+	for queue in get_queues(connection=connection):
+		fail_registry = queue.failed_job_registry
+		failed_jobs = fail_registry.get_job_ids()[limit:]
+		for job_ids in create_batch(failed_jobs, 100):
+			for job_obj in Job.fetch_many(job_ids=job_ids, connection=connection):
+				job_obj and fail_registry.remove(job_obj, delete_job=True)
