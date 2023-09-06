@@ -154,6 +154,8 @@ frappe.Application = class Application {
 		// REDESIGN-TODO: Fix preview popovers
 		this.link_preview = new frappe.ui.LinkPreview();
 
+
+
 		if (!frappe.boot.developer_mode) {
 			if (frappe.user.has_role("System Manager")) {
 				setInterval(function () {
@@ -191,6 +193,7 @@ frappe.Application = class Application {
 			$("#navbar-breadcrumbs-menu-icon").show();
 			$("#navbar-breadcrumbs-menu-logo").hide();
 		}
+
 	}
 
 	set_route() {
@@ -322,7 +325,7 @@ frappe.Application = class Application {
 	}
 
 	load_user_permissions() {
-		frappe.defaults.update_user_permissions();
+		frappe.defaults.load_user_permission_from_boot();
 
 		frappe.realtime.on(
 			"update_user_permissions",
